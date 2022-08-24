@@ -1,3 +1,5 @@
+#![allow(clippy::needless_return)]
+
 /// Represents a point on a [Board]
 #[derive(Clone, Copy, PartialEq)]
 #[repr(u8)]
@@ -17,7 +19,7 @@ impl Board {
     /// Return a [Board] filled with Stone::Empty with the given dimensions
     pub fn empty(width: usize, height: usize) -> Self {
         Self {
-            stones: vec![Stone::Empty; width*height],
+            stones: vec![Stone::Empty; width * height],
             size: (width, height),
         }
     }
@@ -26,10 +28,10 @@ impl Board {
     /// Note that `x` and `y` are zero-indexed, starting from the top-left.
     fn index(&self, x: usize, y: usize) -> Result<usize> {
         if x >= self.size.0 {
-            return Err(Error::CoordinatesOutOfBounds)
+            return Err(Error::CoordinatesOutOfBounds);
         }
         if y >= self.size.1 {
-            return Err(Error::CoordinatesOutOfBounds)
+            return Err(Error::CoordinatesOutOfBounds);
         }
 
         return Ok(y * self.size.0 + x);
@@ -72,7 +74,7 @@ mod test {
         // + + + + + + + + +
         // + + + + + + + + +
         // + + + + + + + + c
-    
+
         // a
         assert_eq!(board.index(0, 0).unwrap(), 0);
 
