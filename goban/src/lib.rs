@@ -1,5 +1,9 @@
 #![allow(clippy::needless_return)]
 
+mod rule;
+
+use rule::{IllegalMove, Rules};
+
 /// Represents a point on a [Board]
 #[derive(Clone, Copy, PartialEq)]
 #[repr(u8)]
@@ -37,6 +41,36 @@ impl Board {
         return Ok(y * self.size.0 + x);
     }
 
+    /// Get the [Stone] at the given coordinate
+    /// Note that `x` and `y` are zero-indexed, starting from the top-left.
+    pub fn get(&self, x: usize, y: usize) -> Result<Stone> {
+        let i = self.index(x, y)?;
+
+        return Ok(self.stones[i]);
+    }
+
+    fn set(&mut self, x: usize, y: usize, s: Stone) -> Result<()> {
+        let i = self.index(x, y)?;
+
+        self.stones[i] = s;
+
+        Ok(())
+    }
+
+    /// Play a move according to the given [Rules].
+    /// Note that `x` and `y` are zero-indexed, starting from the top-left.
+    pub fn play(&mut self, x: usize, y: usize, s: Stone, _rules: &Rules) -> Result<()> {
+        let i = self.index(x, y)?;
+
+        if self.stones[i] != Stone::Empty {
+            return Err(Error::IllegalMove(IllegalMove::NonEmptySpace));
+        }
+
+        self.set(x, y, s)?;
+
+        Ok(())
+    }
+
     /// Returns the (width, height) of the board
     pub fn size(&self) -> (usize, usize) {
         self.size
@@ -53,6 +87,7 @@ impl Default for Board {
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum Error {
     CoordinatesOutOfBounds,
+    IllegalMove(IllegalMove),
 }
 
 pub type Result<T> = std::result::Result<T, Error>;
@@ -108,5 +143,20 @@ mod test {
 
         // c
         assert_eq!(board.index(0, 9), Err(Error::CoordinatesOutOfBounds));
+    }
+
+    #[test]
+    fn non_empty_space() {
+        let mut board = Board::empty(9, 9);
+        let rules = Rules {};
+
+        board
+            .play(0, 0, Stone::White, &rules)
+            .expect("failed to play!");
+
+        assert_eq!(
+            board.play(0, 0, Stone::White, &rules),
+            Err(Error::IllegalMove(IllegalMove::NonEmptySpace))
+        );
     }
 }
