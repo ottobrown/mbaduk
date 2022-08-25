@@ -1,8 +1,10 @@
 #![allow(clippy::needless_return)]
 
-mod rule;
+pub mod rule;
+pub mod result;
 
 use rule::{IllegalMove, Rules};
+pub use result::{Error, Result};
 
 /// Represents a point on a [Board]
 #[derive(Clone, Copy, PartialEq)]
@@ -83,14 +85,6 @@ impl Default for Board {
         Self::empty(19, 19)
     }
 }
-
-#[derive(Clone, Copy, Debug, PartialEq)]
-pub enum Error {
-    CoordinatesOutOfBounds,
-    IllegalMove(IllegalMove),
-}
-
-pub type Result<T> = std::result::Result<T, Error>;
 
 #[cfg(test)]
 mod test {
