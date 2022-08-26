@@ -1,6 +1,6 @@
 #[derive(Clone, Copy, PartialEq, Debug)]
 pub enum IllegalMove {
-    /// Attempt to play on a spot on the [Board] that is already occupied
+    /// Attempt to play on a spot on the [Board](crate::Board) that is already occupied
     NonEmptySpace,
 }
 

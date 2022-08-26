@@ -1,5 +1,7 @@
 #![allow(clippy::needless_return)]
 
+use std::collections::HashSet;
+
 pub mod rule;
 pub mod result;
 
@@ -77,12 +79,29 @@ impl Board {
     pub fn size(&self) -> (usize, usize) {
         self.size
     }
+
+    /// Get a [Group] that contains the given point
+    pub fn get_group(&self, x: usize, y: usize) -> Result<Group> {
+        todo!()
+    }
 }
 
 /// Blank 19x19 board
 impl Default for Board {
     fn default() -> Self {
         Self::empty(19, 19)
+    }
+}
+
+pub struct Group {
+    pub color: Stone,
+    pub points: HashSet<(usize, usize)>,
+}
+impl Group {
+    pub fn extend(&mut self, g: Group) -> Result<()> {
+        self.points.extend(g.points);
+
+        Ok(())
     }
 }
 
