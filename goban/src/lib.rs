@@ -82,7 +82,20 @@ impl Board {
 
     /// Get a [Group] that contains the given point
     pub fn get_group(&self, x: usize, y: usize) -> Result<Group> {
-        todo!()
+        let mut group = Group {
+            color: self.get(x, y)?,
+            points: HashSet::new(),
+            outside: HashSet::new(),
+        };
+
+        self.build_group(&mut group, (x, y));
+
+        return Ok(group);
+    }
+
+    /// Assumes p is in group.points
+    fn build_group(&self, group: &mut Group, p: (usize, usize)) {
+        todo!();
     }
 }
 
@@ -93,16 +106,13 @@ impl Default for Board {
     }
 }
 
+/// A set of connected stones of the same color
 pub struct Group {
     pub color: Stone,
+    /// Points we know are inside the group.
     pub points: HashSet<(usize, usize)>,
-}
-impl Group {
-    pub fn extend(&mut self, g: Group) -> Result<()> {
-        self.points.extend(g.points);
-
-        Ok(())
-    }
+    /// Points we know are outside of the group.
+    pub outside: HashSet<(usize, usize)>,
 }
 
 #[cfg(test)]
@@ -171,5 +181,39 @@ mod test {
             board.play(0, 0, Stone::White, &rules),
             Err(Error::IllegalMove(IllegalMove::NonEmptySpace))
         );
+    }
+
+    #[test]
+    fn center_group() {
+        let mut board = Board::empty(9, 9);
+
+        // + + + + + + + + +
+        // + + + + + + + + +
+        // + + + b b + + + +
+        // + + + + b + + + +
+        // + + + + b b + + +
+        // + + + + + b + + +
+        // + + + + + + + + +
+        // + + + + + + + + +
+        // + + + + + + + + +
+
+        let mut points_in_group: HashSet<(usize, usize)> = HashSet::new();
+
+        points_in_group.insert((3, 2));
+        points_in_group.insert((4, 2));
+        points_in_group.insert((4, 3));
+        points_in_group.insert((4, 4));
+        points_in_group.insert((5, 4));
+        points_in_group.insert((5, 5));
+
+        let rules = Rules {};
+
+        for p in &points_in_group {
+            board.play(p.0, p.1, Stone::Black, &rules).expect("Failed to play");
+        }
+
+        let group = board.get_group(3, 2).expect("Failed to create group");
+
+        assert_eq!(group.points, points_in_group);
     }
 }
