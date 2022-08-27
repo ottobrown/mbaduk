@@ -1,10 +1,10 @@
 #![allow(clippy::needless_return)]
 
-pub mod rule;
 pub mod result;
+pub mod rule;
 
-use rule::{IllegalMove, Rules};
 pub use result::{Error, Result};
+use rule::{IllegalMove, Rules};
 
 /// Represents a point on a [Board]
 #[derive(Clone, Copy, PartialEq)]
