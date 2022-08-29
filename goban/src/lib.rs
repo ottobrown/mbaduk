@@ -281,4 +281,143 @@ mod test {
 
         assert_eq!(group.points, points_in_group);
     }
+
+    #[test]
+    fn left_group() {
+        let mut board = Board::empty(9, 9);
+
+        // + + + + + + + + +
+        // + + + + + + + + +
+        // + + + + + + + + +
+        // + + b b + + + + +
+        // b b b b + + + + +
+        // b b + + + + + + +
+        // + + + + + + + + +
+        // + + + + + + + + +
+        // + + + + + + + + +
+
+        let mut points_in_group: HashSet<(usize, usize)> = HashSet::new();
+
+        points_in_group.insert((0, 4));
+        points_in_group.insert((0, 5));
+        points_in_group.insert((1, 4));
+        points_in_group.insert((1, 5));
+        points_in_group.insert((2, 3));
+        points_in_group.insert((2, 4));
+        points_in_group.insert((3, 3));
+        points_in_group.insert((3, 4));
+
+        let rules = Rules {};
+
+        for p in &points_in_group {
+            board.play(p.0, p.1, Stone::Black, &rules).expect("Failed to play");
+        }
+
+        let group = board.get_group(0, 4).expect("Failed to create group");
+
+        assert_eq!(group.points, points_in_group);
+    }
+
+    #[test]
+    fn right_group() {
+        let mut board = Board::empty(9, 9);
+
+        // + + + + + + + + +
+        // + + + + + + + + +
+        // + + + + + + + + +
+        // + + + + + + + b +
+        // + + + + + + b b b
+        // + + + b b + + + b
+        // + + + b b b b b b
+        // + + + + + + + + +
+        // + + + + + + + + +
+
+        let mut points_in_group: HashSet<(usize, usize)> = HashSet::new();
+
+        points_in_group.insert((8, 4));
+        points_in_group.insert((8, 5));
+        points_in_group.insert((8, 6));
+        points_in_group.insert((7, 3));
+        points_in_group.insert((7, 4));
+        points_in_group.insert((7, 6));
+        points_in_group.insert((6, 4));
+        points_in_group.insert((6, 6));
+        points_in_group.insert((5, 6));
+        points_in_group.insert((4, 6));
+        points_in_group.insert((4, 5));
+        points_in_group.insert((3, 6));
+        points_in_group.insert((3, 5));
+
+        let rules = Rules {};
+
+        for p in &points_in_group {
+            board.play(p.0, p.1, Stone::Black, &rules).expect("Failed to play");
+        }
+
+        let group = board.get_group(8, 4).expect("Failed to create group");
+
+        assert_eq!(group.points, points_in_group);
+    }
+
+    #[test]
+    fn round_group() {
+        let mut board = Board::empty(9, 9);
+
+        // b b b b b b b b b
+        // b + + + + + + + b
+        // b + + + + + + + b
+        // b + + + + + + + b
+        // b + + + + + + + b
+        // b + + + + + + + b
+        // b + + + + + + + b
+        // b + + + + + + + b
+        // b b b b b b b b b
+
+        let mut points_in_group: HashSet<(usize, usize)> = HashSet::new();
+
+        points_in_group.insert((0, 0));
+        points_in_group.insert((0, 1));
+        points_in_group.insert((0, 2));
+        points_in_group.insert((0, 3));
+        points_in_group.insert((0, 4));
+        points_in_group.insert((0, 5));
+        points_in_group.insert((0, 6));
+        points_in_group.insert((0, 7));
+        points_in_group.insert((0, 8));
+        points_in_group.insert((1, 0));
+        points_in_group.insert((2, 0));
+        points_in_group.insert((3, 0));
+        points_in_group.insert((4, 0));
+        points_in_group.insert((5, 0));
+        points_in_group.insert((6, 0));
+        points_in_group.insert((7, 0));
+        points_in_group.insert((8, 0));
+        points_in_group.insert((8, 1));
+        points_in_group.insert((8, 2));
+        points_in_group.insert((8, 3));
+        points_in_group.insert((8, 4));
+        points_in_group.insert((8, 5));
+        points_in_group.insert((8, 6));
+        points_in_group.insert((8, 7));
+        points_in_group.insert((8, 8));
+        points_in_group.insert((8, 8));
+        points_in_group.insert((1, 8));
+        points_in_group.insert((2, 8));
+        points_in_group.insert((3, 8));
+        points_in_group.insert((4, 8));
+        points_in_group.insert((5, 8));
+        points_in_group.insert((6, 8));
+        points_in_group.insert((6, 8));
+        points_in_group.insert((7, 8));
+
+        let rules = Rules {};
+
+        for p in &points_in_group {
+            board.play(p.0, p.1, Stone::Black, &rules).expect("Failed to play");
+        }
+
+        let group = board.get_group(0, 0).expect("Failed to create group");
+
+        assert_eq!(group.points, points_in_group);
+    }
 }
