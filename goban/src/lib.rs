@@ -95,7 +95,67 @@ impl Board {
 
     /// Assumes p is in group.points
     fn build_group(&self, group: &mut Group, p: (usize, usize)) {
-        todo!();
+        let left_edge = p.0 == 0;
+        let top_edge = p.1 == 0;
+
+        if !left_edge {
+            if !group.categorized((p.0-1, p.1)) {
+
+            if self.get(p.0-1, p.1) == Ok(group.color) {
+                group.points.insert((p.0-1, p.1));
+                self.build_group(group, (p.0-1, p.1))
+            } else {
+                group.outside.insert((p.0-1, p.1));
+            }
+
+            }
+        }
+
+        if !top_edge {
+            if !group.categorized((p.0, p.1-1)) {
+
+            if self.get(p.0, p.1-1) == Ok(group.color) {
+                group.points.insert((p.0, p.1-1));
+                self.build_group(group, (p.0, p.1-1))
+            } else {
+                group.outside.insert((p.0, p.1-1));
+            }
+
+            }
+        }
+
+        match self.get(p.0+1, p.1) {
+            Err(_) => {},
+            Ok(s) => {
+                if !group.categorized((p.0+1, p.1)) {
+
+                if s == group.color {
+                    group.points.insert((p.0+1, p.1));
+                    self.build_group(group, (p.0+1, p.1))
+                } else {
+                    group.outside.insert((p.0+1, p.1));
+                }
+
+                }
+            }        
+        }
+
+        match self.get(p.0, p.1+1) {
+            Err(_) => {},
+            Ok(s) => {
+                if !group.categorized((p.0, p.1+1)) {
+
+                if s == group.color {
+                    group.points.insert((p.0, p.1+1));
+                    self.build_group(group, (p.0, p.1+1))
+                } else {
+                    group.outside.insert((p.0, p.1+1));
+                }
+
+                }
+            }
+        }
+
     }
 }
 
@@ -113,6 +173,11 @@ pub struct Group {
     pub points: HashSet<(usize, usize)>,
     /// Points we know are outside of the group.
     pub outside: HashSet<(usize, usize)>,
+}
+impl Group {
+    pub fn categorized(&self, p: (usize, usize)) -> bool {
+        self.points.contains(&p) || self.outside.contains(&p)
+    }
 }
 
 #[cfg(test)]
