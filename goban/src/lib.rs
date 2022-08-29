@@ -2,11 +2,11 @@
 
 use std::collections::HashSet;
 
-pub mod rule;
 pub mod result;
+pub mod rule;
 
-use rule::{IllegalMove, Rules};
 pub use result::{Error, Result};
+use rule::{IllegalMove, Rules};
 
 /// Represents a point on a [Board]
 #[derive(Clone, Copy, PartialEq)]
@@ -99,63 +99,54 @@ impl Board {
         let top_edge = p.1 == 0;
 
         if !left_edge {
-            if !group.categorized((p.0-1, p.1)) {
-
-            if self.get(p.0-1, p.1) == Ok(group.color) {
-                group.points.insert((p.0-1, p.1));
-                self.build_group(group, (p.0-1, p.1))
-            } else {
-                group.outside.insert((p.0-1, p.1));
-            }
-
+            if !group.categorized((p.0 - 1, p.1)) {
+                if self.get(p.0 - 1, p.1) == Ok(group.color) {
+                    group.points.insert((p.0 - 1, p.1));
+                    self.build_group(group, (p.0 - 1, p.1))
+                } else {
+                    group.outside.insert((p.0 - 1, p.1));
+                }
             }
         }
 
         if !top_edge {
-            if !group.categorized((p.0, p.1-1)) {
-
-            if self.get(p.0, p.1-1) == Ok(group.color) {
-                group.points.insert((p.0, p.1-1));
-                self.build_group(group, (p.0, p.1-1))
-            } else {
-                group.outside.insert((p.0, p.1-1));
-            }
-
-            }
-        }
-
-        match self.get(p.0+1, p.1) {
-            Err(_) => {},
-            Ok(s) => {
-                if !group.categorized((p.0+1, p.1)) {
-
-                if s == group.color {
-                    group.points.insert((p.0+1, p.1));
-                    self.build_group(group, (p.0+1, p.1))
+            if !group.categorized((p.0, p.1 - 1)) {
+                if self.get(p.0, p.1 - 1) == Ok(group.color) {
+                    group.points.insert((p.0, p.1 - 1));
+                    self.build_group(group, (p.0, p.1 - 1))
                 } else {
-                    group.outside.insert((p.0+1, p.1));
-                }
-
-                }
-            }        
-        }
-
-        match self.get(p.0, p.1+1) {
-            Err(_) => {},
-            Ok(s) => {
-                if !group.categorized((p.0, p.1+1)) {
-
-                if s == group.color {
-                    group.points.insert((p.0, p.1+1));
-                    self.build_group(group, (p.0, p.1+1))
-                } else {
-                    group.outside.insert((p.0, p.1+1));
-                }
-
+                    group.outside.insert((p.0, p.1 - 1));
                 }
             }
         }
 
+        match self.get(p.0 + 1, p.1) {
+            Err(_) => {}
+            Ok(s) => {
+                if !group.categorized((p.0 + 1, p.1)) {
+                    if s == group.color {
+                        group.points.insert((p.0 + 1, p.1));
+                        self.build_group(group, (p.0 + 1, p.1))
+                    } else {
+                        group.outside.insert((p.0 + 1, p.1));
+                    }
+                }
+            }
+        }
+
+        match self.get(p.0, p.1 + 1) {
+            Err(_) => {}
+            Ok(s) => {
+                if !group.categorized((p.0, p.1 + 1)) {
+                    if s == group.color {
+                        group.points.insert((p.0, p.1 + 1));
+                        self.build_group(group, (p.0, p.1 + 1))
+                    } else {
+                        group.outside.insert((p.0, p.1 + 1));
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -274,7 +265,9 @@ mod test {
         let rules = Rules {};
 
         for p in &points_in_group {
-            board.play(p.0, p.1, Stone::Black, &rules).expect("Failed to play");
+            board
+                .play(p.0, p.1, Stone::Black, &rules)
+                .expect("Failed to play");
         }
 
         let group = board.get_group(3, 2).expect("Failed to create group");
@@ -310,7 +303,9 @@ mod test {
         let rules = Rules {};
 
         for p in &points_in_group {
-            board.play(p.0, p.1, Stone::Black, &rules).expect("Failed to play");
+            board
+                .play(p.0, p.1, Stone::Black, &rules)
+                .expect("Failed to play");
         }
 
         let group = board.get_group(0, 4).expect("Failed to create group");
@@ -351,7 +346,9 @@ mod test {
         let rules = Rules {};
 
         for p in &points_in_group {
-            board.play(p.0, p.1, Stone::Black, &rules).expect("Failed to play");
+            board
+                .play(p.0, p.1, Stone::Black, &rules)
+                .expect("Failed to play");
         }
 
         let group = board.get_group(8, 4).expect("Failed to create group");
@@ -400,7 +397,6 @@ mod test {
         points_in_group.insert((8, 6));
         points_in_group.insert((8, 7));
         points_in_group.insert((8, 8));
-        points_in_group.insert((8, 8));
         points_in_group.insert((1, 8));
         points_in_group.insert((2, 8));
         points_in_group.insert((3, 8));
@@ -413,7 +409,9 @@ mod test {
         let rules = Rules {};
 
         for p in &points_in_group {
-            board.play(p.0, p.1, Stone::Black, &rules).expect("Failed to play");
+            board
+                .play(p.0, p.1, Stone::Black, &rules)
+                .expect("Failed to play");
         }
 
         let group = board.get_group(0, 0).expect("Failed to create group");
