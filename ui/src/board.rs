@@ -1,9 +1,5 @@
 use eframe::egui;
-use egui::{
-    Ui,
-    Response,
-    Color32,
-};
+use egui::{Color32, Response, Ui};
 
 use mb_goban::Board;
 
@@ -44,24 +40,17 @@ impl BoardUi {
 
 impl egui::Widget for BoardUi {
     fn ui(self, ui: &mut Ui) -> Response {
-        let (response, painter) = ui.allocate_painter(
-            self.size,
-            egui::Sense::drag(),
-        );
+        let (response, painter) = ui.allocate_painter(self.size, egui::Sense::drag());
 
         // draw background color
-        painter.rect_filled(
-            egui::Rect::EVERYTHING,
-            0.0,
-            self.style.background_color,
-        );
+        painter.rect_filled(egui::Rect::EVERYTHING, 0.0, self.style.background_color);
 
         let padding = self.size * self.style.padding;
 
         let (w, h) = self.board.size();
 
-        let inner_w = self.size.x - 2.0*padding.x;
-        let distance_x = inner_w / ((w-1) as f32);
+        let inner_w = self.size.x - 2.0 * padding.x;
+        let distance_x = inner_w / ((w - 1) as f32);
 
         // draw vertical lines
         for x in 0..w {
@@ -75,8 +64,8 @@ impl egui::Widget for BoardUi {
             );
         }
 
-        let inner_h = self.size.y - 2.0*padding.y;
-        let distance_y = inner_h / ((h-1) as f32);
+        let inner_h = self.size.y - 2.0 * padding.y;
+        let distance_y = inner_h / ((h - 1) as f32);
 
         // draw horizontal lines
         for y in 0..h {

@@ -6,7 +6,7 @@ use mb_goban::Board;
 
 mod board;
 
-use board::{BoardUi, BoardStyle};
+use board::{BoardStyle, BoardUi};
 
 fn main() {
     let ops = NativeOptions::default();
@@ -34,7 +34,11 @@ impl State {
 impl App for State {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         egui::CentralPanel::default().show(ctx, |ui| {
-            ui.add(BoardUi::new(self.style, egui::vec2(800.0, 800.0), &self.board))
+            ui.add(BoardUi::new(
+                self.style,
+                egui::vec2(800.0, 800.0),
+                &self.board,
+            ))
         });
     }
 }
