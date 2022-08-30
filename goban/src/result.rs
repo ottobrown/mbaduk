@@ -4,7 +4,6 @@ use crate::rule::IllegalMove;
 pub enum Error {
     CoordinatesOutOfBounds,
     IllegalMove(IllegalMove),
-    PointAlreadyCategorized,
 }
 
 pub type Result<T> = std::result::Result<T, Error>;
