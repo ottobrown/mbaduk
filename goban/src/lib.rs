@@ -93,60 +93,41 @@ impl Board {
         return Ok(group);
     }
 
+    fn try_group_point(&self, x: usize, y: usize, group: &mut Group) -> Result<()> {
+        if group.categorized((x, y)) {
+            return Err(Error::PointAlreadyCategorized);
+        }
+
+        let stone = self.get(x, y)?;
+
+        if stone == group.color {
+            group.points.insert((x, y));
+            self.build_group(group, (x, y))
+        } else {
+            group.outside.insert((x, y));
+        }
+
+        Ok(())
+    }
+
     /// Assumes p is in group.points
+    // TODO: handle errors from self.try_group_point
+    #[allow(unused_must_use)]
     fn build_group(&self, group: &mut Group, p: (usize, usize)) {
         let left_edge = p.0 == 0;
         let top_edge = p.1 == 0;
 
         if !left_edge {
-            if !group.categorized((p.0 - 1, p.1)) {
-                if self.get(p.0 - 1, p.1) == Ok(group.color) {
-                    group.points.insert((p.0 - 1, p.1));
-                    self.build_group(group, (p.0 - 1, p.1))
-                } else {
-                    group.outside.insert((p.0 - 1, p.1));
-                }
-            }
+            self.try_group_point(p.0 - 1, p.1, group);
         }
 
         if !top_edge {
-            if !group.categorized((p.0, p.1 - 1)) {
-                if self.get(p.0, p.1 - 1) == Ok(group.color) {
-                    group.points.insert((p.0, p.1 - 1));
-                    self.build_group(group, (p.0, p.1 - 1))
-                } else {
-                    group.outside.insert((p.0, p.1 - 1));
-                }
-            }
+            self.try_group_point(p.0, p.1 - 1, group);
         }
 
-        match self.get(p.0 + 1, p.1) {
-            Err(_) => {}
-            Ok(s) => {
-                if !group.categorized((p.0 + 1, p.1)) {
-                    if s == group.color {
-                        group.points.insert((p.0 + 1, p.1));
-                        self.build_group(group, (p.0 + 1, p.1))
-                    } else {
-                        group.outside.insert((p.0 + 1, p.1));
-                    }
-                }
-            }
-        }
+        self.try_group_point(p.0 + 1, p.1, group);
 
-        match self.get(p.0, p.1 + 1) {
-            Err(_) => {}
-            Ok(s) => {
-                if !group.categorized((p.0, p.1 + 1)) {
-                    if s == group.color {
-                        group.points.insert((p.0, p.1 + 1));
-                        self.build_group(group, (p.0, p.1 + 1))
-                    } else {
-                        group.outside.insert((p.0, p.1 + 1));
-                    }
-                }
-            }
-        }
+        self.try_group_point(p.0, p.1 + 1, group);
     }
 }
 
