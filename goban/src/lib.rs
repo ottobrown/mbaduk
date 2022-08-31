@@ -85,7 +85,8 @@ impl Board {
         let mut group = Group {
             color: self.get(x, y)?,
             points: HashSet::new(),
-            outside: HashSet::new(),
+            liberties: HashSet::new(),
+            enemy_neighbors: HashSet::new(),
         };
 
         self.build_group(&mut group, (x, y));
@@ -106,8 +107,10 @@ impl Board {
         if stone == group.color {
             group.points.insert((x, y));
             self.build_group(group, (x, y))
+        } else if stone == Stone::Empty {
+            group.liberties.insert((x, y));
         } else {
-            group.outside.insert((x, y));
+            group.enemy_neighbors.insert((x, y));
         }
     }
 
@@ -142,12 +145,14 @@ pub struct Group {
     pub color: Stone,
     /// Points we know are inside the group.
     pub points: HashSet<(usize, usize)>,
-    /// Points we know are outside of the group.
-    pub outside: HashSet<(usize, usize)>,
+    /// [Empty](Stone::Empty) stones bordering the Group.
+    pub liberties: HashSet<(usize, usize)>,
+    /// Enemy [Stone]s bordering the Group.
+    pub enemy_neighbors: HashSet<(usize, usize)>,
 }
 impl Group {
     pub fn categorized(&self, p: (usize, usize)) -> bool {
-        self.points.contains(&p) || self.outside.contains(&p)
+        self.points.contains(&p) || self.liberties.contains(&p) || self.enemy_neighbors.contains(&p)
     }
 }
 
@@ -397,5 +402,53 @@ mod test {
         let group = board.get_group(0, 0).expect("Failed to create group");
 
         assert_eq!(group.points, points_in_group);
+    }
+
+    #[test]
+    fn group_neighbors() {
+        let mut board = Board::empty(9, 9);
+        // + + + + + + + + +
+        // + + + + + + + + +
+        // + + + + + + + + +
+        // + + w b + + + + +
+        // + + w b + + + + +
+        // + + w b + + + + +
+        // + + + + + + + + +
+        // + + + + + + + + +
+        // + + + + + + + + +
+
+        let mut black: HashSet<(usize, usize)> = HashSet::new();
+        let mut white: HashSet<(usize, usize)> = HashSet::new();
+
+        black.insert((3, 3));
+        black.insert((3, 4));
+        black.insert((3, 5));
+
+        white.insert((2, 3));
+        white.insert((2, 4));
+        white.insert((2, 5));
+
+        let rules = Rules {};
+
+        for p in &black {
+            board
+                .play(p.0, p.1, Stone::Black, &rules)
+                .expect("Failed to play");
+        }
+
+        for p in &white {
+            board
+                .play(p.0, p.1, Stone::White, &rules)
+                .expect("Failed to play");
+        }
+
+        let black_group = board.get_group(3, 3).expect("Failed to create group");
+        let white_group = board.get_group(2, 3).expect("Failed to create group");
+
+        assert_eq!(black, black_group.points);
+        assert_eq!(white, white_group.points);
+
+        assert_eq!(black, white_group.enemy_neighbors);
+        assert_eq!(white, black_group.enemy_neighbors);
     }
 }
