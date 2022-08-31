@@ -1,5 +1,7 @@
 #![allow(clippy::needless_return)]
 
+use std::collections::HashSet;
+
 pub mod result;
 pub mod rule;
 
@@ -77,12 +79,75 @@ impl Board {
     pub fn size(&self) -> (usize, usize) {
         self.size
     }
+
+    /// Get a [Group] that contains the given point
+    pub fn get_group(&self, x: usize, y: usize) -> Result<Group> {
+        let mut group = Group {
+            color: self.get(x, y)?,
+            points: HashSet::new(),
+            outside: HashSet::new(),
+        };
+
+        self.build_group(&mut group, (x, y));
+
+        return Ok(group);
+    }
+
+    fn try_group_point(&self, x: usize, y: usize, group: &mut Group) {
+        if group.categorized((x, y)) {
+            return;
+        }
+
+        let stone = match self.get(x, y) {
+            Ok(s) => s,
+            Err(_) => return,
+        };
+
+        if stone == group.color {
+            group.points.insert((x, y));
+            self.build_group(group, (x, y))
+        } else {
+            group.outside.insert((x, y));
+        }
+    }
+
+    /// Assumes p is in group.points
+    fn build_group(&self, group: &mut Group, p: (usize, usize)) {
+        let left_edge = p.0 == 0;
+        let top_edge = p.1 == 0;
+
+        if !left_edge {
+            self.try_group_point(p.0 - 1, p.1, group);
+        }
+
+        if !top_edge {
+            self.try_group_point(p.0, p.1 - 1, group);
+        }
+
+        self.try_group_point(p.0 + 1, p.1, group);
+
+        self.try_group_point(p.0, p.1 + 1, group);
+    }
 }
 
 /// Blank 19x19 board
 impl Default for Board {
     fn default() -> Self {
         Self::empty(19, 19)
+    }
+}
+
+/// A set of connected stones of the same color
+pub struct Group {
+    pub color: Stone,
+    /// Points we know are inside the group.
+    pub points: HashSet<(usize, usize)>,
+    /// Points we know are outside of the group.
+    pub outside: HashSet<(usize, usize)>,
+}
+impl Group {
+    pub fn categorized(&self, p: (usize, usize)) -> bool {
+        self.points.contains(&p) || self.outside.contains(&p)
     }
 }
 
@@ -152,5 +217,185 @@ mod test {
             board.play(0, 0, Stone::White, &rules),
             Err(Error::IllegalMove(IllegalMove::NonEmptySpace))
         );
+    }
+
+    #[test]
+    fn center_group() {
+        let mut board = Board::empty(9, 9);
+
+        // + + + + + + + + +
+        // + + + + + + + + +
+        // + + + b b + + + +
+        // + + + + b + + + +
+        // + + + + b b + + +
+        // + + + + + b + + +
+        // + + + + + + + + +
+        // + + + + + + + + +
+        // + + + + + + + + +
+
+        let mut points_in_group: HashSet<(usize, usize)> = HashSet::new();
+
+        points_in_group.insert((3, 2));
+        points_in_group.insert((4, 2));
+        points_in_group.insert((4, 3));
+        points_in_group.insert((4, 4));
+        points_in_group.insert((5, 4));
+        points_in_group.insert((5, 5));
+
+        let rules = Rules {};
+
+        for p in &points_in_group {
+            board
+                .play(p.0, p.1, Stone::Black, &rules)
+                .expect("Failed to play");
+        }
+
+        let group = board.get_group(3, 2).expect("Failed to create group");
+
+        assert_eq!(group.points, points_in_group);
+    }
+
+    #[test]
+    fn left_group() {
+        let mut board = Board::empty(9, 9);
+
+        // + + + + + + + + +
+        // + + + + + + + + +
+        // + + + + + + + + +
+        // + + b b + + + + +
+        // b b b b + + + + +
+        // b b + + + + + + +
+        // + + + + + + + + +
+        // + + + + + + + + +
+        // + + + + + + + + +
+
+        let mut points_in_group: HashSet<(usize, usize)> = HashSet::new();
+
+        points_in_group.insert((0, 4));
+        points_in_group.insert((0, 5));
+        points_in_group.insert((1, 4));
+        points_in_group.insert((1, 5));
+        points_in_group.insert((2, 3));
+        points_in_group.insert((2, 4));
+        points_in_group.insert((3, 3));
+        points_in_group.insert((3, 4));
+
+        let rules = Rules {};
+
+        for p in &points_in_group {
+            board
+                .play(p.0, p.1, Stone::Black, &rules)
+                .expect("Failed to play");
+        }
+
+        let group = board.get_group(0, 4).expect("Failed to create group");
+
+        assert_eq!(group.points, points_in_group);
+    }
+
+    #[test]
+    fn right_group() {
+        let mut board = Board::empty(9, 9);
+
+        // + + + + + + + + +
+        // + + + + + + + + +
+        // + + + + + + + + +
+        // + + + + + + + b +
+        // + + + + + + b b b
+        // + + + b b + + + b
+        // + + + b b b b b b
+        // + + + + + + + + +
+        // + + + + + + + + +
+
+        let mut points_in_group: HashSet<(usize, usize)> = HashSet::new();
+
+        points_in_group.insert((8, 4));
+        points_in_group.insert((8, 5));
+        points_in_group.insert((8, 6));
+        points_in_group.insert((7, 3));
+        points_in_group.insert((7, 4));
+        points_in_group.insert((7, 6));
+        points_in_group.insert((6, 4));
+        points_in_group.insert((6, 6));
+        points_in_group.insert((5, 6));
+        points_in_group.insert((4, 6));
+        points_in_group.insert((4, 5));
+        points_in_group.insert((3, 6));
+        points_in_group.insert((3, 5));
+
+        let rules = Rules {};
+
+        for p in &points_in_group {
+            board
+                .play(p.0, p.1, Stone::Black, &rules)
+                .expect("Failed to play");
+        }
+
+        let group = board.get_group(8, 4).expect("Failed to create group");
+
+        assert_eq!(group.points, points_in_group);
+    }
+
+    #[test]
+    fn round_group() {
+        let mut board = Board::empty(9, 9);
+
+        // b b b b b b b b b
+        // b + + + + + + + b
+        // b + + + + + + + b
+        // b + + + + + + + b
+        // b + + + + + + + b
+        // b + + + + + + + b
+        // b + + + + + + + b
+        // b + + + + + + + b
+        // b b b b b b b b b
+
+        let mut points_in_group: HashSet<(usize, usize)> = HashSet::new();
+
+        points_in_group.insert((0, 0));
+        points_in_group.insert((0, 1));
+        points_in_group.insert((0, 2));
+        points_in_group.insert((0, 3));
+        points_in_group.insert((0, 4));
+        points_in_group.insert((0, 5));
+        points_in_group.insert((0, 6));
+        points_in_group.insert((0, 7));
+        points_in_group.insert((0, 8));
+        points_in_group.insert((1, 0));
+        points_in_group.insert((2, 0));
+        points_in_group.insert((3, 0));
+        points_in_group.insert((4, 0));
+        points_in_group.insert((5, 0));
+        points_in_group.insert((6, 0));
+        points_in_group.insert((7, 0));
+        points_in_group.insert((8, 0));
+        points_in_group.insert((8, 1));
+        points_in_group.insert((8, 2));
+        points_in_group.insert((8, 3));
+        points_in_group.insert((8, 4));
+        points_in_group.insert((8, 5));
+        points_in_group.insert((8, 6));
+        points_in_group.insert((8, 7));
+        points_in_group.insert((8, 8));
+        points_in_group.insert((1, 8));
+        points_in_group.insert((2, 8));
+        points_in_group.insert((3, 8));
+        points_in_group.insert((4, 8));
+        points_in_group.insert((5, 8));
+        points_in_group.insert((6, 8));
+        points_in_group.insert((6, 8));
+        points_in_group.insert((7, 8));
+
+        let rules = Rules {};
+
+        for p in &points_in_group {
+            board
+                .play(p.0, p.1, Stone::Black, &rules)
+                .expect("Failed to play");
+        }
+
+        let group = board.get_group(0, 0).expect("Failed to create group");
+
+        assert_eq!(group.points, points_in_group);
     }
 }
