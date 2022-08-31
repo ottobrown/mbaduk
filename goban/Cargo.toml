@@ -1,5 +1,9 @@
 [package]
 name = "mb_goban"
+description = "A go board data type"
+license = "MIT"
+repository = "https://github.com/ottobrown/mbaduk/tree/main/goban"
+readme = "../README.md"
 version = "0.0.0"
 edition = "2021"
 
