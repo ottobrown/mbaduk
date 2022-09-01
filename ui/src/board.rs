@@ -41,10 +41,6 @@ impl BoardUi {
             board: board.clone(),
         }
     }
-
-    pub fn board_mut(&mut self) -> &mut Board {
-        self.board
-    }
 }
 
 impl egui::Widget for BoardUi {
