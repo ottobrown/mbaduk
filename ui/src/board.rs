@@ -32,6 +32,7 @@ pub fn render_board(
     board: &mut Board,
     size: egui::Vec2,
     style: &BoardStyle,
+    turn: &mut Stone,
 ) -> Response {
     let (response, painter) = ui.allocate_painter(size, egui::Sense::drag());
 
@@ -104,7 +105,9 @@ pub fn render_board(
 
             let rules = Rules {};
 
-            board.play(x, y, Stone::Black, &rules);
+            if board.play(x, y, *turn, &rules).is_ok() {
+                *turn = !*turn;
+            }
         }
     }
 
