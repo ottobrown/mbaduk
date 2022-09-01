@@ -11,6 +11,17 @@ pub enum Stone {
     Black,
     White,
 }
+impl std::ops::Not for Stone {
+    type Output = Self;
+
+    fn not(self) -> Self::Output {
+        match self {
+            Stone::Black => Stone::White,
+            Stone::White => Stone::Black,
+            Stone::Empty => Stone::Empty,
+        }
+    }
+}
 
 /// Represents the current state of a go game
 #[derive(Clone, PartialEq)]
