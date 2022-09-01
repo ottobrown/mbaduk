@@ -4,7 +4,7 @@ use crate::{Error, Result};
 use crate::rule::{IllegalMove, Rules};
 
 /// Represents a point on a [Board]
-#[derive(Clone, Copy, PartialEq)]
+#[derive(Clone, Copy, PartialEq, Debug)]
 #[repr(u8)]
 pub enum Stone {
     Empty,
@@ -207,7 +207,7 @@ mod board_tests {
     #[test]
     fn non_empty_space() {
         let mut board = Board::empty(9, 9);
-        let rules = Rules {};
+        let rules = Rules::JAPANESE;
 
         board
             .play(0, 0, Stone::White, &rules)
@@ -248,7 +248,7 @@ mod group_tests {
         points_in_group.insert((5, 4));
         points_in_group.insert((5, 5));
 
-        let rules = Rules {};
+        let rules = Rules::JAPANESE;
 
         for p in &points_in_group {
             board
@@ -286,7 +286,7 @@ mod group_tests {
         points_in_group.insert((3, 3));
         points_in_group.insert((3, 4));
 
-        let rules = Rules {};
+        let rules = Rules::JAPANESE;
 
         for p in &points_in_group {
             board
@@ -329,7 +329,7 @@ mod group_tests {
         points_in_group.insert((3, 6));
         points_in_group.insert((3, 5));
 
-        let rules = Rules {};
+        let rules = Rules::JAPANESE;
 
         for p in &points_in_group {
             board
@@ -392,7 +392,7 @@ mod group_tests {
         points_in_group.insert((6, 8));
         points_in_group.insert((7, 8));
 
-        let rules = Rules {};
+        let rules = Rules::JAPANESE;
 
         for p in &points_in_group {
             board
@@ -429,7 +429,7 @@ mod group_tests {
         white.insert((2, 4));
         white.insert((2, 5));
 
-        let rules = Rules {};
+        let rules = Rules::JAPANESE;
 
         for p in &black {
             board
@@ -451,5 +451,49 @@ mod group_tests {
 
         assert_eq!(black, white_group.enemy_neighbors);
         assert_eq!(white, black_group.enemy_neighbors);
+    }
+}
+
+#[cfg(test)]
+mod capturing_tests {
+    use super::*;
+    
+    #[test]
+    fn kill_group_center() -> Result<()> {
+        let mut board = Board::empty(9, 9);
+
+        // + + + + + + + + +
+        // + + + + + + + + +
+        // + + + + b b + + +
+        // + + + b w w b + +
+        // + + b w w b + + +
+        // + + + b b + + + +
+        // + + + + + + + + +
+        // + + + + + + + + +
+        // + + + + + + + + +
+
+        let rules = Rules::JAPANESE;
+
+        board.play(3, 4, Stone::White, &rules)?;
+        board.play(4, 4, Stone::White, &rules)?;
+        board.play(4, 3, Stone::White, &rules)?;
+        board.play(5, 3, Stone::White, &rules)?;
+        
+        board.play(2, 4, Stone::Black, &rules)?;
+        board.play(3, 3, Stone::Black, &rules)?;
+        board.play(3, 5, Stone::Black, &rules)?;
+        board.play(4, 2, Stone::Black, &rules)?;
+        board.play(4, 5, Stone::Black, &rules)?;
+        board.play(5, 2, Stone::Black, &rules)?;
+        board.play(5, 2, Stone::Black, &rules)?;
+        board.play(5, 4, Stone::Black, &rules)?;
+        board.play(6, 3, Stone::Black, &rules)?;
+
+        assert_eq!(board.get(3, 4)?, Stone::Empty);
+        assert_eq!(board.get(4, 4)?, Stone::Empty);
+        assert_eq!(board.get(4, 3)?, Stone::Empty);
+        assert_eq!(board.get(5, 3)?, Stone::Empty);
+
+        Ok(())
     }
 }
