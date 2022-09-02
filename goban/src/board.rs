@@ -58,7 +58,7 @@ impl Board {
 
     /// Play a move according to the given [Rules].
     /// Note that `x` and `y` are zero-indexed, starting from the top-left.
-    pub fn play(&mut self, x: usize, y: usize, s: Stone, _rules: &Rules) -> Result<()> {
+    pub fn play(&mut self, x: usize, y: usize, s: Stone, rules: &Rules) -> Result<()> {
         let i = self.index(x, y)?;
 
         if self.stones[i] != Stone::Empty {
@@ -67,12 +67,46 @@ impl Board {
 
         self.set(x, y, s)?;
 
+        let group = self.get_group(x, y)?;
+
+        let mut enemy_groups: Vec<Group> = Vec::new();
+        let mut categorized: HashSet<(usize, usize)> = HashSet::new();
+
+        for s in group.enemy_neighbors {
+            if !categorized.contains(&s) {
+                enemy_groups.push(self.get_group(s.0, s.1)?);
+            }
+
+            categorized.insert(s);
+        }
+
+        for g in enemy_groups {
+            if g.liberties.is_empty() {
+                self.kill_group(&g);
+            }
+        }
+
+        let group = self.get_group(x, y)?;
+
+        if !rules.suicide_allowed && group.liberties.is_empty() {
+            // undo move
+            self.set(x, y, Stone::Empty)?;
+
+            return Err(Error::IllegalMove(IllegalMove::SuicidalMove));
+        }
+
         Ok(())
     }
 
     /// Returns the (width, height) of the board
     pub fn size(&self) -> (usize, usize) {
         self.size
+    }
+
+    fn kill_group(&mut self, g: &Group) {
+        for s in &g.points {
+            self.set(s.0, s.1, Stone::Empty);
+        }
     }
 
     /// Get a [Group] that contains the given point
@@ -484,7 +518,6 @@ mod capturing_tests {
         board.play(3, 5, Stone::Black, &rules)?;
         board.play(4, 2, Stone::Black, &rules)?;
         board.play(4, 5, Stone::Black, &rules)?;
-        board.play(5, 2, Stone::Black, &rules)?;
         board.play(5, 2, Stone::Black, &rules)?;
         board.play(5, 4, Stone::Black, &rules)?;
         board.play(6, 3, Stone::Black, &rules)?;
