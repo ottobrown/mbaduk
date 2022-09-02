@@ -1,6 +1,10 @@
 [package]
 name = "mbaduk_ui"
-version = "0.1.0"
+description = "A ui baduk client"
+license = "MIT"
+repository = "https://github.com/ottobrown/mbaduk/tree/main/ui"
+readme = "../README.md"
+version = "0.0.0"
 edition = "2021"
 
 [dependencies]
