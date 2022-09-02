@@ -93,7 +93,7 @@ impl Board {
 
         for g in enemy_groups {
             if g.liberties.is_empty() {
-                self.kill_group(&g);
+                self.kill_group(&g)?;
             }
         }
 
@@ -114,10 +114,12 @@ impl Board {
         self.size
     }
 
-    fn kill_group(&mut self, g: &Group) {
+    fn kill_group(&mut self, g: &Group) -> Result<()> {
         for s in &g.points {
-            self.set(s.0, s.1, Stone::Empty);
+            self.set(s.0, s.1, Stone::Empty)?;
         }
+
+        Ok(())
     }
 
     /// Get a [Group] that contains the given point
