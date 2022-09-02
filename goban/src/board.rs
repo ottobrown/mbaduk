@@ -129,6 +129,8 @@ impl Board {
             enemy_neighbors: HashSet::new(),
         };
 
+        group.points.insert((x, y));
+
         self.build_group(&mut group, (x, y));
 
         return Ok(group);
@@ -496,6 +498,20 @@ mod group_tests {
 
         assert_eq!(black, white_group.enemy_neighbors);
         assert_eq!(white, black_group.enemy_neighbors);
+    }
+
+    #[test]
+    fn single_stone_group() {
+        let mut board = Board::empty(9, 9);
+
+        board.play(5, 5, Stone::Black, &Rules::JAPANESE).expect("failed to play");
+
+        let mut intended = HashSet::new();
+        intended.insert((5, 5));
+
+        let group = board.get_group(5, 5).unwrap();
+        
+        assert_eq!(group.points, intended);
     }
 }
 
