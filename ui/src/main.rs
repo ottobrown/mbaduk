@@ -6,10 +6,11 @@ use eframe::App;
 use eframe::NativeOptions;
 
 use mb_goban::Board;
+use mb_goban::Stone;
 
 mod board;
 
-use board::{BoardStyle, BoardUi};
+use board::{render_board, BoardStyle};
 
 fn main() {
     let ops = NativeOptions::default();
@@ -20,6 +21,7 @@ fn main() {
 struct State {
     board: Board,
     style: BoardStyle,
+    turn: Stone,
 }
 
 impl State {
@@ -30,6 +32,7 @@ impl State {
         Self {
             board: board,
             style: style,
+            turn: Stone::Black,
         }
     }
 }
@@ -37,11 +40,7 @@ impl State {
 impl App for State {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         egui::CentralPanel::default().show(ctx, |ui| {
-            ui.add(BoardUi::new(
-                self.style,
-                egui::vec2(800.0, 800.0),
-                &self.board,
-            ))
+            render_board(ui, &mut self.board, egui::vec2(800.0, 800.0), &self.style, &mut self.turn);
         });
     }
 }
