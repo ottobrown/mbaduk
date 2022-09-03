@@ -1,7 +1,7 @@
 use std::collections::HashSet;
 
-use crate::{Error, Result};
 use crate::rule::{IllegalMove, Rules};
+use crate::{Error, Result};
 
 /// Represents a point on a [Board]
 #[derive(Clone, Copy, PartialEq)]
@@ -229,7 +229,6 @@ mod board_tests {
             Err(Error::IllegalMove(IllegalMove::NonEmptySpace))
         );
     }
-
 }
 
 #[cfg(test)]
