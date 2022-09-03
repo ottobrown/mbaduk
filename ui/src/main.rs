@@ -40,7 +40,13 @@ impl State {
 impl App for State {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         egui::CentralPanel::default().show(ctx, |ui| {
-            render_board(ui, &mut self.board, egui::vec2(800.0, 800.0), &self.style, &mut self.turn);
+            render_board(
+                ui,
+                &mut self.board,
+                egui::vec2(800.0, 800.0),
+                &self.style,
+                &mut self.turn,
+            );
         });
     }
 }

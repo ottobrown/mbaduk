@@ -1,8 +1,8 @@
 #![allow(clippy::needless_return)]
 
+pub mod board;
 pub mod result;
 pub mod rule;
-pub mod board;
 
+pub use board::{Board, Group, Stone};
 pub use result::{Error, Result};
-pub use board::{Stone, Board, Group};
