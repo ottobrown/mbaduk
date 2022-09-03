@@ -115,7 +115,7 @@ impl Board {
             return Err(Error::IllegalMove(IllegalMove::Ko));
         }
 
-        if new.hashes.contains(&hash) && !rules.superko {
+        if new.hashes.contains(&hash) && rules.superko {
             return Err(Error::IllegalMove(IllegalMove::SuperKo));
         }
 
