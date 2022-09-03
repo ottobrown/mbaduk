@@ -4,7 +4,7 @@ use crate::rule::{IllegalMove, Rules};
 use crate::{Error, Result};
 
 /// Represents a point on a [Board]
-#[derive(Clone, Copy, PartialEq)]
+#[derive(Clone, Copy, PartialEq, Debug, Hash)]
 #[repr(u8)]
 pub enum Stone {
     Empty,
@@ -24,10 +24,12 @@ impl std::ops::Not for Stone {
 }
 
 /// Represents the current state of a go game
-#[derive(Clone, PartialEq)]
+#[derive(Clone, PartialEq, Hash)]
 pub struct Board {
     stones: Vec<Stone>,
     size: (usize, usize),
+
+    hashes: Vec<u64>,
 }
 impl Board {
     /// Return a [Board] filled with Stone::Empty with the given dimensions
@@ -35,6 +37,8 @@ impl Board {
         Self {
             stones: vec![Stone::Empty; width * height],
             size: (width, height),
+
+            hashes: Vec::new(),
         }
     }
 
@@ -69,21 +73,69 @@ impl Board {
 
     /// Play a move according to the given [Rules].
     /// Note that `x` and `y` are zero-indexed, starting from the top-left.
-    pub fn play(&mut self, x: usize, y: usize, s: Stone, _rules: &Rules) -> Result<()> {
-        let i = self.index(x, y)?;
+    pub fn play(&mut self, x: usize, y: usize, s: Stone, rules: &Rules) -> Result<()> {
+        let mut new = self.clone();
 
-        if self.stones[i] != Stone::Empty {
+        let i = new.index(x, y)?;
+
+        if new.stones[i] != Stone::Empty {
             return Err(Error::IllegalMove(IllegalMove::NonEmptySpace));
         }
 
-        self.set(x, y, s)?;
+        new.set(x, y, s)?;
 
+        let group = new.get_group(x, y)?;
+
+        let mut enemy_groups: Vec<Group> = Vec::new();
+        let mut categorized: HashSet<(usize, usize)> = HashSet::new();
+
+        for s in group.enemy_neighbors {
+            if !categorized.contains(&s) {
+                enemy_groups.push(new.get_group(s.0, s.1)?);
+            }
+
+            categorized.insert(s);
+        }
+
+        for g in enemy_groups {
+            if g.liberties.is_empty() {
+                new.kill_group(&g)?;
+            }
+        }
+
+        let group = new.get_group(x, y)?;
+
+        if !rules.suicide_allowed && group.liberties.is_empty() {
+            return Err(Error::IllegalMove(IllegalMove::SuicidalMove));
+        }
+
+        let hash = fxhash::hash64(&new.stones);
+
+        if Some(&hash) == new.hashes.iter().rev().nth(1) {
+            return Err(Error::IllegalMove(IllegalMove::Ko));
+        }
+
+        if new.hashes.contains(&hash) && rules.superko {
+            return Err(Error::IllegalMove(IllegalMove::SuperKo));
+        }
+
+        new.hashes.push(hash);
+
+        *self = new;
         Ok(())
     }
 
     /// Returns the (width, height) of the board
     pub fn size(&self) -> (usize, usize) {
         self.size
+    }
+
+    fn kill_group(&mut self, g: &Group) -> Result<()> {
+        for s in &g.points {
+            self.set(s.0, s.1, Stone::Empty)?;
+        }
+
+        Ok(())
     }
 
     /// Get a [Group] that contains the given point
@@ -94,6 +146,8 @@ impl Board {
             liberties: HashSet::new(),
             enemy_neighbors: HashSet::new(),
         };
+
+        group.points.insert((x, y));
 
         self.build_group(&mut group, (x, y));
 
@@ -218,7 +272,7 @@ mod board_tests {
     #[test]
     fn non_empty_space() {
         let mut board = Board::empty(9, 9);
-        let rules = Rules {};
+        let rules = Rules::JAPANESE;
 
         board
             .play(0, 0, Stone::White, &rules)
@@ -258,7 +312,7 @@ mod group_tests {
         points_in_group.insert((5, 4));
         points_in_group.insert((5, 5));
 
-        let rules = Rules {};
+        let rules = Rules::JAPANESE;
 
         for p in &points_in_group {
             board
@@ -296,7 +350,7 @@ mod group_tests {
         points_in_group.insert((3, 3));
         points_in_group.insert((3, 4));
 
-        let rules = Rules {};
+        let rules = Rules::JAPANESE;
 
         for p in &points_in_group {
             board
@@ -339,7 +393,7 @@ mod group_tests {
         points_in_group.insert((3, 6));
         points_in_group.insert((3, 5));
 
-        let rules = Rules {};
+        let rules = Rules::JAPANESE;
 
         for p in &points_in_group {
             board
@@ -402,7 +456,7 @@ mod group_tests {
         points_in_group.insert((6, 8));
         points_in_group.insert((7, 8));
 
-        let rules = Rules {};
+        let rules = Rules::JAPANESE;
 
         for p in &points_in_group {
             board
@@ -439,7 +493,7 @@ mod group_tests {
         white.insert((2, 4));
         white.insert((2, 5));
 
-        let rules = Rules {};
+        let rules = Rules::JAPANESE;
 
         for p in &black {
             board
@@ -461,5 +515,100 @@ mod group_tests {
 
         assert_eq!(black, white_group.enemy_neighbors);
         assert_eq!(white, black_group.enemy_neighbors);
+    }
+
+    #[test]
+    fn single_stone_group() {
+        let mut board = Board::empty(9, 9);
+
+        board
+            .play(5, 5, Stone::Black, &Rules::JAPANESE)
+            .expect("failed to play");
+
+        let mut intended = HashSet::new();
+        intended.insert((5, 5));
+
+        let group = board.get_group(5, 5).unwrap();
+
+        assert_eq!(group.points, intended);
+    }
+}
+
+#[cfg(test)]
+mod capturing_tests {
+    use super::*;
+
+    #[test]
+    fn kill_group_center() -> Result<()> {
+        let mut board = Board::empty(9, 9);
+
+        // + + + + + + + + +
+        // + + + + + + + + +
+        // + + + + b b + + +
+        // + + + b w w b + +
+        // + + b w w b + + +
+        // + + + b b + + + +
+        // + + + + + + + + +
+        // + + + + + + + + +
+        // + + + + + + + + +
+
+        let rules = Rules::JAPANESE;
+
+        board.play(3, 4, Stone::White, &rules)?;
+        board.play(4, 4, Stone::White, &rules)?;
+        board.play(4, 3, Stone::White, &rules)?;
+        board.play(5, 3, Stone::White, &rules)?;
+
+        board.play(2, 4, Stone::Black, &rules)?;
+        board.play(3, 3, Stone::Black, &rules)?;
+        board.play(3, 5, Stone::Black, &rules)?;
+        board.play(4, 2, Stone::Black, &rules)?;
+        board.play(4, 5, Stone::Black, &rules)?;
+        board.play(5, 2, Stone::Black, &rules)?;
+        board.play(5, 4, Stone::Black, &rules)?;
+        board.play(6, 3, Stone::Black, &rules)?;
+
+        assert_eq!(board.get(3, 4)?, Stone::Empty);
+        assert_eq!(board.get(4, 4)?, Stone::Empty);
+        assert_eq!(board.get(4, 3)?, Stone::Empty);
+        assert_eq!(board.get(5, 3)?, Stone::Empty);
+
+        Ok(())
+    }
+
+    #[test]
+    fn single_ko() -> Result<()> {
+        let mut board = Board::empty(9, 9);
+
+        // + + + + + + + + +
+        // + + + + + + + + +
+        // + + + + b + + + +
+        // + + + b w b + + +
+        // + + + w b w + + +
+        // + + + + w + + + +
+        // + + + + + + + + +
+        // + + + + + + + + +
+        // + + + + + + + + +
+
+        let rules = Rules::JAPANESE;
+
+        board.play(4, 2, Stone::Black, &rules)?;
+        board.play(3, 3, Stone::Black, &rules)?;
+        board.play(5, 3, Stone::Black, &rules)?;
+
+        board.play(3, 4, Stone::White, &rules)?;
+        board.play(4, 5, Stone::White, &rules)?;
+        board.play(5, 4, Stone::White, &rules)?;
+        board.play(4, 3, Stone::White, &rules)?;
+
+        // Capture the white stone, creating the ko
+        board.play(4, 4, Stone::Black, &rules)?;
+
+        assert_eq!(
+            board.play(4, 3, Stone::White, &rules),
+            Err(Error::IllegalMove(IllegalMove::Ko))
+        );
+
+        Ok(())
     }
 }

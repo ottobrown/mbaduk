@@ -103,7 +103,7 @@ pub fn render_board(
                 ((p.y - inner_y) / distance_y).round() as usize,
             );
 
-            let rules = Rules {};
+            let rules = Rules::JAPANESE;
 
             if board.play(x, y, *turn, &rules).is_ok() {
                 *turn = !*turn;
