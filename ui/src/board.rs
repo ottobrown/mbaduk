@@ -1,8 +1,8 @@
 use eframe::egui;
 use egui::{Color32, Response, Ui};
 
-use mb_goban::Rules;
 use mb_goban::Board;
+use mb_goban::Rules;
 use mb_goban::Stone;
 
 #[derive(Clone, Copy)]

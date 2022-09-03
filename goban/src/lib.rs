@@ -6,4 +6,4 @@ mod rule;
 
 pub use board::{Board, Group, Stone};
 pub use result::{Error, Result};
-pub use rule::{Rules, IllegalMove};
+pub use rule::{IllegalMove, Rules};
