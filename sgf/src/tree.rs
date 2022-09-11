@@ -90,5 +90,49 @@ mod tests {
         assert_eq!(format!("{}", node), String::from(";AB[cd][ef]AW[aa][bb]"));
     }
 
-    // TODO: test for format tree
+    #[test]
+    fn format_tree() {
+        let tree = SgfTree {
+            nodes: vec![
+                SgfNode {
+                    props: vec![
+                        SgfProp {
+                            id: String::from("AB"),
+                            values: vec![String::from("cd"), String::from("ef")],
+                        },
+                        SgfProp {
+                            id: String::from("AW"),
+                            values: vec![String::from("aa"), String::from("bb")],
+                        },
+                    ],
+                },
+
+                SgfNode {
+                    props: vec![SgfProp { id: String::from("B"), values: vec![String::from("qq")] }],
+                }
+            ],
+
+            children: vec![
+                SgfTree {
+                    nodes: vec![
+                        SgfNode {
+                            props: vec![SgfProp { id: String::from("W"), values: vec![String::from("aq")] }],
+                        }
+                    ],
+                    children: Vec::new(),
+                },
+
+                SgfTree {
+                    nodes: vec![
+                        SgfNode {
+                            props: vec![SgfProp { id: String::from("W"), values: vec![String::from("bq")] }],
+                        }
+                    ],
+                    children: Vec::new(),
+                }
+            ],
+        };
+
+        assert_eq!(format!("{tree}"), String::from("(;AB[cd][ef]AW[aa][bb];B[qq](;W[aq])(;W[bq]))"))
+    }
 }
