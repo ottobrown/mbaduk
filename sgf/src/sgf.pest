@@ -15,8 +15,8 @@ prop_value = ${
 // e.g. AB[cd] or TR[cd][dd][dc]
 prop = ${ prop_id ~ ("[" ~ prop_value ~ "]")+ }
 
-// A node starts with a semicolon, followed by one or more prop_pairs.
+// A node starts with a semicolon, followed by one or more prop.
 node = { ";" ~ prop+ }
 
-// A tree is wrapped in parentheses, contaiins one or more nodes, and 0 or more of itself.
+// A tree is wrapped in parentheses, contains one or more nodes, and 0 or more of itself.
 tree = { "(" ~ node+ ~ tree* ~ ")" }
