@@ -4,6 +4,7 @@ use pest::iterators::Pair;
 use pest::Parser;
 use pest_derive::Parser;
 
+#[derive(Clone, Debug)]
 pub enum ParseError {
     Pest(pest::error::Error<Rule>),
 }
@@ -72,5 +73,53 @@ fn parse_prop(p: Pair<'_, Rule>) -> ParseResult<SgfProp> {
 
 #[cfg(test)]
 mod tests {
-    // TODO: write tests
+    use super::*;
+
+    #[test]
+    fn format_tree() {
+        let sgf_data = "(;AB[cd][ef]AW[aa][bb];B[qq](;W[aq])(;W[bq]))";
+
+        let tree = SgfTree {
+            nodes: vec![
+                SgfNode {
+                    props: vec![
+                        SgfProp {
+                            id: String::from("AB"),
+                            values: vec![String::from("cd"), String::from("ef")],
+                        },
+                        SgfProp {
+                            id: String::from("AW"),
+                            values: vec![String::from("aa"), String::from("bb")],
+                        },
+                    ],
+                },
+
+                SgfNode {
+                    props: vec![SgfProp { id: String::from("B"), values: vec![String::from("qq")] }],
+                }
+            ],
+
+            children: vec![
+                SgfTree {
+                    nodes: vec![
+                        SgfNode {
+                            props: vec![SgfProp { id: String::from("W"), values: vec![String::from("aq")] }],
+                        }
+                    ],
+                    children: Vec::new(),
+                },
+
+                SgfTree {
+                    nodes: vec![
+                        SgfNode {
+                            props: vec![SgfProp { id: String::from("W"), values: vec![String::from("bq")] }],
+                        }
+                    ],
+                    children: Vec::new(),
+                }
+            ],
+        };
+
+        assert_eq!(parse(sgf_data).unwrap(), tree);
+    }
 }
