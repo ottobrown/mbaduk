@@ -2,6 +2,7 @@ use std::fmt;
 
 // TODO: optimize size of SgfProp, SgfNode, and SgfTree
 
+#[derive(Clone, Default)]
 pub struct SgfProp {
     pub(crate) id: String,
     pub(crate) values: Vec<String>,
@@ -19,6 +20,7 @@ impl fmt::Display for SgfProp {
     }
 }
 
+#[derive(Clone, Default)]
 pub struct SgfNode {
     pub(crate) props: Vec<SgfProp>,
 }
@@ -35,6 +37,7 @@ impl fmt::Display for SgfNode {
     }
 }
 
+#[derive(Clone, Default)]
 pub struct SgfTree {
     pub(crate) nodes: Vec<SgfNode>,
     pub(crate) children: Vec<SgfTree>,

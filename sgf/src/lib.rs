@@ -1,2 +1,2 @@
-pub mod tree;
 pub mod parse;
+pub mod tree;
