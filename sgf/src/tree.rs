@@ -7,6 +7,22 @@ pub struct SgfProp {
     pub(crate) id: String,
     pub(crate) values: Vec<String>,
 }
+impl SgfProp {
+    pub fn new<S: Into<String>>(id: impl Into<String>, values: impl Iterator<Item = S>) -> Self {
+        Self {
+            id: id.into(),
+            values: values.map(|s| s.into()).collect(),
+        }
+    }
+
+    pub fn id(&self) -> &str {
+        &self.id
+    }
+
+    pub fn values(&self) -> &Vec<String> {
+        &self.values
+    }
+}
 
 impl fmt::Display for SgfProp {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -23,6 +39,17 @@ impl fmt::Display for SgfProp {
 #[derive(Clone, Default, PartialEq, Debug)]
 pub struct SgfNode {
     pub(crate) props: Vec<SgfProp>,
+}
+impl SgfNode {
+    pub fn new(props: impl Iterator<Item = SgfProp>) -> Self {
+        Self {
+            props: props.collect(),
+        }
+    }
+
+    pub fn props(&self) -> &Vec<SgfProp> {
+        &self.props
+    }
 }
 
 impl fmt::Display for SgfNode {
@@ -42,6 +69,23 @@ pub struct SgfTree {
     pub(crate) nodes: Vec<SgfNode>,
     pub(crate) children: Vec<SgfTree>,
 }
+impl SgfTree {
+    pub fn new(nodes: impl Iterator<Item = SgfNode>, children: impl Iterator<Item = SgfTree>) -> Self {
+        Self {
+            nodes: nodes.collect(),
+            children: children.collect(),
+        }
+    }
+
+    pub fn nodes(&self) -> &Vec<SgfNode> {
+        &self.nodes
+    }
+
+    pub fn children(&self) -> &Vec<SgfTree> {
+        &self.children
+    }
+}
+
 impl fmt::Display for SgfTree {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "(")?;
