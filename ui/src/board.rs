@@ -15,6 +15,8 @@ pub struct BoardStyle {
 
     /// As a fraction of the minimus of the width and height of square.
     pub stone_radius: f32,
+    /// in egui screen units
+    pub star_point_radius: f32,
 }
 impl Default for BoardStyle {
     fn default() -> Self {
@@ -23,6 +25,7 @@ impl Default for BoardStyle {
             line_thickness: 3.0,
             background_color: Color32::from_rgb(0xDE, 0xB8, 0x87),
             stone_radius: 0.46,
+            star_point_radius: 5.0,
         }
     }
 }
@@ -73,12 +76,22 @@ pub fn render_board(
         );
     }
 
+    let stars = board.star_points();
+
     for x in 0..w {
         for y in 0..h {
             let x_pos = response.rect.min.x + padding.x + (x as f32) * distance_x;
             let y_pos = response.rect.min.y + padding.y + (y as f32) * distance_y;
 
             let r = distance_x.min(distance_y) * style.stone_radius;
+
+            if stars.contains(&(x, y)) {
+                painter.circle_filled(
+                    egui::pos2(x_pos, y_pos),
+                    style.star_point_radius,
+                    Color32::BLACK,
+                );
+            }
 
             match board.get(x, y) {
                 Ok(Stone::Black) => {
