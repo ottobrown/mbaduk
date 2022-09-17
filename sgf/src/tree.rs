@@ -1,17 +1,22 @@
 use std::fmt;
 
-// TODO: optimize size of SgfProp, SgfNode, and SgfTree
-
 #[derive(Clone, Default, PartialEq, Debug)]
 pub struct SgfProp {
     pub id: String,
     pub values: Vec<String>,
 }
 impl SgfProp {
-    pub fn new<S: Into<String>>(id: impl Into<String>, values: impl Iterator<Item = S>) -> Self {
+    pub fn new(id: &str, value: &str) -> Self {
         Self {
             id: id.into(),
-            values: values.map(|s| s.into()).collect(),
+            values: vec![value.into()],
+        }
+    }
+
+    pub fn new_many(id: &str, values: Vec<&str>) -> Self {
+        Self {
+            id: id.into(),
+            values: values.iter().map(|&s| s.into()).collect(),
         }
     }
 }
@@ -33,9 +38,9 @@ pub struct SgfNode {
     pub props: Vec<SgfProp>,
 }
 impl SgfNode {
-    pub fn new(props: impl Iterator<Item = SgfProp>) -> Self {
+    pub fn new(props: impl Into<Vec<SgfProp>>) -> Self {
         Self {
-            props: props.collect(),
+            props: props.into(),
         }
     }
 }
@@ -58,10 +63,10 @@ pub struct SgfTree {
     pub children: Vec<SgfTree>,
 }
 impl SgfTree {
-    pub fn new(nodes: impl Iterator<Item = SgfNode>, children: impl Iterator<Item = SgfTree>) -> Self {
+    pub fn new(nodes: impl Into<Vec<SgfNode>>, children: impl Into<Vec<SgfTree>>) -> Self {
         Self {
-            nodes: nodes.collect(),
-            children: children.collect(),
+            nodes: nodes.into(),
+            children: children.into(),
         }
     }
 }
@@ -120,43 +125,34 @@ mod tests {
             nodes: vec![
                 SgfNode {
                     props: vec![
-                        SgfProp {
-                            id: String::from("AB"),
-                            values: vec![String::from("cd"), String::from("ef")],
-                        },
-                        SgfProp {
-                            id: String::from("AW"),
-                            values: vec![String::from("aa"), String::from("bb")],
-                        },
+                        SgfProp::new_many("AB", vec!["cd", "ef"]),
+                        SgfProp::new_many("AW", vec!["aa", "bb"]),
                     ],
                 },
-
                 SgfNode {
-                    props: vec![SgfProp { id: String::from("B"), values: vec![String::from("qq")] }],
-                }
+                    props: vec![SgfProp::new("B", "qq")],
+                },
             ],
 
             children: vec![
                 SgfTree {
-                    nodes: vec![
-                        SgfNode {
-                            props: vec![SgfProp { id: String::from("W"), values: vec![String::from("aq")] }],
-                        }
-                    ],
+                    nodes: vec![SgfNode {
+                        props: vec![SgfProp::new("W", "aq")],
+                    }],
                     children: Vec::new(),
                 },
-
                 SgfTree {
-                    nodes: vec![
-                        SgfNode {
-                            props: vec![SgfProp { id: String::from("W"), values: vec![String::from("bq")] }],
-                        }
-                    ],
+                    nodes: vec![SgfNode {
+                        props: vec![SgfProp::new("W", "bq")],
+                    }],
                     children: Vec::new(),
-                }
+                },
             ],
         };
 
-        assert_eq!(format!("{tree}"), String::from("(;AB[cd][ef]AW[aa][bb];B[qq](;W[aq])(;W[bq]))"))
+        assert_eq!(
+            format!("{tree}"),
+            String::from("(;AB[cd][ef]AW[aa][bb];B[qq](;W[aq])(;W[bq]))")
+        )
     }
 }

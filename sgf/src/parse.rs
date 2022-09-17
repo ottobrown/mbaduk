@@ -76,50 +76,60 @@ mod tests {
     use super::*;
 
     #[test]
-    fn format_tree() {
+    fn parse_game_comment() {
+        let comment = "(;GC[This can contain spaces])";
+
+        let tree = SgfTree {
+            nodes: vec![SgfNode {
+                props: vec![SgfProp::new("GC", "This can contain spaces")],
+            }],
+
+            children: Vec::new(),
+        };
+
+        assert_eq!(parse(comment).unwrap(), tree);
+    }
+
+    #[test]
+    fn parse_tree() {
         let sgf_data = "(;AB[cd][ef]AW[aa][bb];B[qq](;W[aq])(;W[bq]))";
+        let sgf_data_with_spaces = "(
+            ;AB[cd][ef] AW[aa][bb]
+            ;B[qq]
+            (;W[aq])
+            (;W[bq])
+        )";
 
         let tree = SgfTree {
             nodes: vec![
                 SgfNode {
                     props: vec![
-                        SgfProp {
-                            id: String::from("AB"),
-                            values: vec![String::from("cd"), String::from("ef")],
-                        },
-                        SgfProp {
-                            id: String::from("AW"),
-                            values: vec![String::from("aa"), String::from("bb")],
-                        },
+                        SgfProp::new_many("AB", vec!["cd", "ef"]),
+                        SgfProp::new_many("AW", vec!["aa", "bb"]),
                     ],
                 },
-
                 SgfNode {
-                    props: vec![SgfProp { id: String::from("B"), values: vec![String::from("qq")] }],
-                }
+                    props: vec![SgfProp::new("B", "qq")],
+                },
             ],
 
             children: vec![
                 SgfTree {
-                    nodes: vec![
-                        SgfNode {
-                            props: vec![SgfProp { id: String::from("W"), values: vec![String::from("aq")] }],
-                        }
-                    ],
+                    nodes: vec![SgfNode {
+                        props: vec![SgfProp::new("W", "aq")],
+                    }],
                     children: Vec::new(),
                 },
-
                 SgfTree {
-                    nodes: vec![
-                        SgfNode {
-                            props: vec![SgfProp { id: String::from("W"), values: vec![String::from("bq")] }],
-                        }
-                    ],
+                    nodes: vec![SgfNode {
+                        props: vec![SgfProp::new("W", "bq")],
+                    }],
                     children: Vec::new(),
-                }
+                },
             ],
         };
 
         assert_eq!(parse(sgf_data).unwrap(), tree);
+        assert_eq!(parse(sgf_data_with_spaces).unwrap(), tree);
     }
 }
