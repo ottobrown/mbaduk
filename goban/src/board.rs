@@ -76,8 +76,6 @@ impl Board {
     pub fn place(&mut self, x: usize, y: usize, s: Stone, rules: &Rules) -> Result<()> {
         let mut new = self.clone();
 
-        let i = new.index(x, y)?;
-
         new.set(x, y, s)?;
 
         let group = new.get_group(x, y)?;
@@ -119,9 +117,7 @@ impl Board {
     pub fn play(&mut self, x: usize, y: usize, s: Stone, rules: &Rules) -> Result<()> {
         let mut new = self.clone();
 
-        let i = new.index(x, y)?;
-
-        if new.stones[i] != Stone::Empty {
+        if self.get(x, y)? != Stone::Empty {
             return Err(Error::IllegalMove(IllegalMove::NonEmptySpace));
         }
 
@@ -165,6 +161,7 @@ impl Board {
         new.hashes.push(hash);
 
         *self = new;
+
         Ok(())
     }
 
