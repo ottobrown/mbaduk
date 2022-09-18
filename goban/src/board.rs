@@ -71,6 +71,49 @@ impl Board {
         Ok(())
     }
 
+    /// Place a stone, even if it is overriding an already placed stone
+    /// and ignoring ko rules
+    pub fn place(&mut self, x: usize, y: usize, s: Stone, rules: &Rules) -> Result<()> {
+        let mut new = self.clone();
+
+        let i = new.index(x, y)?;
+
+        new.set(x, y, s)?;
+
+        let group = new.get_group(x, y)?;
+
+        let mut enemy_groups: Vec<Group> = Vec::new();
+        let mut categorized: HashSet<(usize, usize)> = HashSet::new();
+
+        for s in group.enemy_neighbors {
+            if !categorized.contains(&s) {
+                enemy_groups.push(new.get_group(s.0, s.1)?);
+            }
+
+            categorized.insert(s);
+        }
+
+        for g in enemy_groups {
+            if g.liberties.is_empty() {
+                new.kill_group(&g)?;
+            }
+        }
+
+        let group = new.get_group(x, y)?;
+
+        if !rules.suicide_allowed && group.liberties.is_empty() {
+            return Err(Error::IllegalMove(IllegalMove::SuicidalMove));
+        }
+
+        let hash = fxhash::hash64(&new.stones);
+
+        new.hashes.push(hash);
+
+        *self = new;
+
+        Ok(())
+    }
+
     /// Play a move according to the given [Rules].
     /// Note that `x` and `y` are zero-indexed, starting from the top-left.
     pub fn play(&mut self, x: usize, y: usize, s: Stone, rules: &Rules) -> Result<()> {
