@@ -71,14 +71,53 @@ impl Board {
         Ok(())
     }
 
+    /// Place a stone, even if it is overriding an already placed stone
+    /// and ignoring ko rules
+    pub fn place(&mut self, x: usize, y: usize, s: Stone, rules: &Rules) -> Result<()> {
+        let mut new = self.clone();
+
+        new.set(x, y, s)?;
+
+        let group = new.get_group(x, y)?;
+
+        let mut enemy_groups: Vec<Group> = Vec::new();
+        let mut categorized: HashSet<(usize, usize)> = HashSet::new();
+
+        for s in group.enemy_neighbors {
+            if !categorized.contains(&s) {
+                enemy_groups.push(new.get_group(s.0, s.1)?);
+            }
+
+            categorized.insert(s);
+        }
+
+        for g in enemy_groups {
+            if g.liberties.is_empty() {
+                new.kill_group(&g)?;
+            }
+        }
+
+        let group = new.get_group(x, y)?;
+
+        if !rules.suicide_allowed && group.liberties.is_empty() {
+            return Err(Error::IllegalMove(IllegalMove::SuicidalMove));
+        }
+
+        let hash = fxhash::hash64(&new.stones);
+
+        new.hashes.push(hash);
+
+        *self = new;
+
+        Ok(())
+    }
+
     /// Play a move according to the given [Rules].
     /// Note that `x` and `y` are zero-indexed, starting from the top-left.
     pub fn play(&mut self, x: usize, y: usize, s: Stone, rules: &Rules) -> Result<()> {
         let mut new = self.clone();
 
-        let i = new.index(x, y)?;
-
-        if new.stones[i] != Stone::Empty {
+        if self.get(x, y)? != Stone::Empty {
             return Err(Error::IllegalMove(IllegalMove::NonEmptySpace));
         }
 
@@ -122,6 +161,7 @@ impl Board {
         new.hashes.push(hash);
 
         *self = new;
+
         Ok(())
     }
 
@@ -190,6 +230,53 @@ impl Board {
         self.try_group_point(p.0 + 1, p.1, group);
 
         self.try_group_point(p.0, p.1 + 1, group);
+    }
+
+    pub fn star_points(&self) -> Vec<(usize, usize)> {
+        let mut points = Vec::new();
+
+        let (w, h) = self.size;
+
+        // if the board has an exact center
+        if w % 2 == 1 && h % 2 == 1 {
+            // add a center star point
+            points.push((w / 2, h / 2));
+        }
+
+        if w < 9 || h < 9 {
+            return points;
+        }
+
+        // 3-3 points
+        if w < 13 || h < 13 {
+            points.push((2, 2));
+            points.push((2, h - 3));
+            points.push((w - 3, 2));
+            points.push((w - 3, h - 3));
+
+            return points;
+        }
+
+        // sides
+        if w > 13 {
+            if h % 2 == 1 {
+                points.push((3, h / 2));
+                points.push((w - 4, h / 2));
+            }
+
+            if w % 2 == 1 {
+                points.push((w / 2, 3));
+                points.push((w / 2, h - 4));
+            }
+        }
+
+        // 4-4 points
+        points.push((3, 3));
+        points.push((3, h - 4));
+        points.push((w - 4, 3));
+        points.push((w - 4, h - 4));
+
+        return points;
     }
 }
 
