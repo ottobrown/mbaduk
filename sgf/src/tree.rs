@@ -1,5 +1,7 @@
 use std::fmt;
 
+/// Represents a single sgf property.
+/// This is the smallest unit of the sgf format.
 #[derive(Clone, Default, PartialEq, Debug)]
 pub struct SgfProp {
     pub id: String,
@@ -33,6 +35,8 @@ impl fmt::Display for SgfProp {
     }
 }
 
+/// Represents an sgf node, consisting of many [SgfProp]s.
+/// This is the smallest unit of the sgf format visible in most sgf clients.
 #[derive(Clone, Default, PartialEq, Debug)]
 pub struct SgfNode {
     pub props: Vec<SgfProp>,
@@ -57,6 +61,7 @@ impl fmt::Display for SgfNode {
     }
 }
 
+/// Represents the whole tree of [SgfNodes].
 #[derive(Clone, Default, PartialEq, Debug)]
 pub struct SgfTree {
     pub nodes: Vec<SgfNode>,

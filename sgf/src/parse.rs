@@ -4,6 +4,7 @@ use pest::iterators::Pair;
 use pest::Parser;
 use pest_derive::Parser;
 
+/// All the ways [mb_sgf](crate) can fail
 #[derive(Clone, Debug, PartialEq)]
 pub enum ParseError {
     Pest(pest::error::Error<Rule>),
@@ -22,6 +23,7 @@ pub type ParseResult<T> = std::result::Result<T, ParseError>;
 #[grammar = "sgf.pest"]
 struct SgfParser;
 
+/// Parse an sgf string to an [SgfTree]
 pub fn parse(input: &str) -> ParseResult<SgfTree> {
     let tree_rule = SgfParser::parse(Rule::tree, input)?.next().unwrap();
 
