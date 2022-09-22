@@ -4,9 +4,10 @@ use pest::iterators::Pair;
 use pest::Parser;
 use pest_derive::Parser;
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum ParseError {
     Pest(pest::error::Error<Rule>),
+    CoordinateParseError,
 }
 
 impl From<pest::error::Error<Rule>> for ParseError {
