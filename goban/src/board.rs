@@ -73,8 +73,9 @@ impl Board {
 
     /// Place a stone, even if it is overriding an already placed stone
     /// and ignoring ko rules
-    pub fn place(&mut self, x: usize, y: usize, s: Stone, rules: &Rules) -> Result<()> {
+    pub fn place(&mut self, x: usize, y: usize, s: Stone, rules: &Rules) -> Result<PlayResponse> {
         let mut new = self.clone();
+        let mut response = PlayResponse::default();
 
         new.set(x, y, s)?;
 
@@ -94,6 +95,13 @@ impl Board {
         for g in enemy_groups {
             if g.liberties.is_empty() {
                 new.kill_group(&g)?;
+
+                if g.color == Stone::Black {
+                    response.black_captures += g.points.len() as u16;
+                }
+                if g.color == Stone::White {
+                    response.white_captures += g.points.len() as u16;
+                }
             }
         }
 
@@ -109,13 +117,14 @@ impl Board {
 
         *self = new;
 
-        Ok(())
+        Ok(response)
     }
 
     /// Play a move according to the given [Rules].
     /// Note that `x` and `y` are zero-indexed, starting from the top-left.
-    pub fn play(&mut self, x: usize, y: usize, s: Stone, rules: &Rules) -> Result<()> {
+    pub fn play(&mut self, x: usize, y: usize, s: Stone, rules: &Rules) -> Result<PlayResponse> {
         let mut new = self.clone();
+        let mut response = PlayResponse::default();
 
         if self.get(x, y)? != Stone::Empty {
             return Err(Error::IllegalMove(IllegalMove::NonEmptySpace));
@@ -139,6 +148,13 @@ impl Board {
         for g in enemy_groups {
             if g.liberties.is_empty() {
                 new.kill_group(&g)?;
+
+                if g.color == Stone::Black {
+                    response.black_captures += g.points.len() as u16;
+                }
+                if g.color == Stone::White {
+                    response.white_captures += g.points.len() as u16;
+                }
             }
         }
 
@@ -162,7 +178,7 @@ impl Board {
 
         *self = new;
 
-        Ok(())
+        Ok(response)
     }
 
     /// Returns the (width, height) of the board
@@ -301,6 +317,13 @@ impl Group {
     pub fn categorized(&self, p: (usize, usize)) -> bool {
         self.points.contains(&p) || self.liberties.contains(&p) || self.enemy_neighbors.contains(&p)
     }
+}
+
+/// Data returned about a [Board::play] or [Board::place].
+#[derive(Clone, Copy, PartialEq, Default, Debug)]
+pub struct PlayResponse {
+    pub black_captures: u16,
+    pub white_captures: u16,
 }
 
 #[cfg(test)]
@@ -653,12 +676,21 @@ mod capturing_tests {
         board.play(4, 5, Stone::Black, &rules)?;
         board.play(5, 2, Stone::Black, &rules)?;
         board.play(5, 4, Stone::Black, &rules)?;
-        board.play(6, 3, Stone::Black, &rules)?;
+
+        let response = board.play(6, 3, Stone::Black, &rules)?;
 
         assert_eq!(board.get(3, 4)?, Stone::Empty);
         assert_eq!(board.get(4, 4)?, Stone::Empty);
         assert_eq!(board.get(4, 3)?, Stone::Empty);
         assert_eq!(board.get(5, 3)?, Stone::Empty);
+
+        assert_eq!(
+            response,
+            PlayResponse {
+                black_captures: 0,
+                white_captures: 4,
+            }
+        );
 
         Ok(())
     }
