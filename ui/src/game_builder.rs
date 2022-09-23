@@ -25,11 +25,9 @@ impl NewGameBuilder {
         return None;
     }
 }
-        
+
 impl Default for NewGameBuilder {
     fn default() -> Self {
-        Self {
-            size: (19, 19),
-        }
+        Self { size: (19, 19) }
     }
 }

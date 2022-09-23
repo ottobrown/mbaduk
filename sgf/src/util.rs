@@ -6,10 +6,12 @@ pub fn parse_coords(coord: &str) -> ParseResult<(usize, usize)> {
         return Err(ParseError::CoordinateParseError);
     }
 
+    let mut bytes = coord.as_bytes().iter();
+
     // TODO: find a better way to do this
     let parsed = (
-        parse_coord(*coord.as_bytes().iter().nth(0).ok_or(ParseError::CoordinateParseError)? as char)?,
-        parse_coord(*coord.as_bytes().iter().nth(1).ok_or(ParseError::CoordinateParseError)? as char)?,
+        parse_coord(*bytes.next().ok_or(ParseError::CoordinateParseError)? as char)?,
+        parse_coord(*bytes.next().ok_or(ParseError::CoordinateParseError)? as char)?,
     );
 
     Ok(parsed)
@@ -26,7 +28,7 @@ fn parse_coord(c: char) -> ParseResult<usize> {
         return Ok(u - 97);
     }
 
-    return Ok(u - 39);
+    Ok(u - 39)
 }
 
 #[cfg(test)]
