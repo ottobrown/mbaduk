@@ -3,7 +3,7 @@ name = "mb_sgf"
 description = "A library for parsing sgf files"
 license = "MIT"
 readme = "../README.md"
-version = "0.0.0"
+version = "0.1.0"
 edition = "2021"
 
 [dependencies]
