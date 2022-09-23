@@ -1,0 +1,22 @@
+// ignore spaces and newlines
+WHITESPACE = _{ " " | NEWLINE }
+
+// The name of a property. e.g. AB.
+// Prop ids are always capital letters.
+prop_id = { ('A'..'Z')+ }
+
+// The inner value of a property, wrapped in brackets.
+// A prop value can contain any char besides '['.
+prop_value = ${
+    (!("]") ~ ANY)*
+}
+
+// A prop_id followed by one or more prop_value.
+// e.g. AB[cd] or TR[cd][dd][dc]
+prop = ${ prop_id ~ ("[" ~ prop_value ~ "]")+ }
+
+// A node starts with a semicolon, followed by one or more prop.
+node = { ";" ~ prop+ }
+
+// A tree is wrapped in parentheses, contains one or more nodes, and 0 or more of itself.
+tree = { "(" ~ node+ ~ tree* ~ ")" }

@@ -13,3 +13,7 @@ A crate containing a go board data type.
 The ui client for mbaduk.
 
 Can be installed with `cargo install mbaduk_ui`
+
+## mb_sgf
+
+A library for parsing .sgf files

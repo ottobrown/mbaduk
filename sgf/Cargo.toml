@@ -1,0 +1,11 @@
+[package]
+name = "mb_sgf"
+description = "A library for parsing sgf files"
+license = "MIT"
+readme = "../README.md"
+version = "0.0.0"
+edition = "2021"
+
+[dependencies]
+pest = "2.3.0"
+pest_derive = "2.3.0"
