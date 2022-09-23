@@ -10,4 +10,5 @@ edition = "2021"
 [dependencies]
 eframe = "0.19.0"
 
-mb_goban = { version = "0.1.0", path = "../goban" }
+mb_goban = { version = "0.2.0", path = "../goban" }
+mb_sgf = { version = "0.1.0", path = "../goban" }
