@@ -5,14 +5,11 @@ use eframe::egui;
 use eframe::App;
 use eframe::NativeOptions;
 
-use mb_goban::Board;
-use mb_goban::Stone;
-
 mod board;
-mod game_builder;
+mod game;
 
 use board::{render_board, BoardStyle};
-use game_builder::NewGameBuilder;
+use game::{NewGameBuilder, OptionalGame};
 
 fn main() {
     let ops = NativeOptions::default();
@@ -21,20 +18,16 @@ fn main() {
 }
 
 struct State {
-    board: Option<Board>,
-    builder: NewGameBuilder,
+    game: OptionalGame,
 
     style: BoardStyle,
-    turn: Stone,
 }
 
 impl State {
     fn new(_cc: &eframe::CreationContext<'_>) -> Self {
         Self {
-            board: None,
-            builder: NewGameBuilder::default(),
+            game: OptionalGame::None(NewGameBuilder::default()),
             style: BoardStyle::default(),
-            turn: Stone::Black,
         }
     }
 }
@@ -50,11 +43,17 @@ impl App for State {
 }
 
 fn main_ui(ui: &mut egui::Ui, state: &mut State) {
-    if let Some(b) = state.board.as_mut() {
-        let size = egui::vec2(800.0, 800.0);
+    match &mut state.game {
+        OptionalGame::Some(ref mut g) => {
+            let size = egui::vec2(800.0, 800.0);
 
-        render_board(ui, b, size, &state.style, &mut state.turn);
-    } else {
-        state.board = state.builder.build(ui);
+            render_board(ui, &mut g.board, size, &state.style, &mut g.turn);
+        }
+
+        OptionalGame::None(ref mut b) => {
+            if let Some(g) = b.build(ui) {
+                state.game = OptionalGame::Some(g);
+            }
+        }
     }
 }
