@@ -9,11 +9,18 @@ use pest_derive::Parser;
 pub enum ParseError {
     Pest(pest::error::Error<Rule>),
     CoordinateParseError,
+    IntParse(std::num::ParseIntError),
 }
 
 impl From<pest::error::Error<Rule>> for ParseError {
     fn from(e: pest::error::Error<Rule>) -> Self {
         Self::Pest(e)
+    }
+}
+
+impl From<std::num::ParseIntError> for ParseError {
+    fn from(e: std::num::ParseIntError) -> Self {
+        Self::IntParse(e)
     }
 }
 
