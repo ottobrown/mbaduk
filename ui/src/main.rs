@@ -51,7 +51,7 @@ fn main_ui(ui: &mut egui::Ui, state: &mut State) {
         }
 
         OptionalGame::None(ref mut b) => {
-            if let Some(g) = b.build(ui) {
+            if let Some(g) = b.render(ui) {
                 state.game = OptionalGame::Some(g);
             }
         }
