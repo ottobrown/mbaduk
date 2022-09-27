@@ -31,6 +31,29 @@ fn parse_coord(c: char) -> ParseResult<usize> {
     Ok(u - 39)
 }
 
+/// Return the (width, height) in a SZ[] property.
+// TODO: write a test for this
+pub fn parse_board_size(s: &str) -> ParseResult<(usize, usize)> {
+    match s.find(':') {
+        None => {
+            let w = s.parse::<usize>()?;
+
+            return Ok((w, w));
+        },
+
+        Some(x) => {
+            let (w_s, h_s) = s.split_at(x);
+
+            let w = w_s.parse::<usize>()?;
+
+
+            let h = h_s.parse::<usize>()?;
+
+            return Ok((w, h));
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
