@@ -32,7 +32,6 @@ fn parse_coord(c: char) -> ParseResult<usize> {
 }
 
 /// Return the (width, height) in a SZ[] property.
-// TODO: write a test for this
 pub fn parse_board_size(s: &str) -> ParseResult<(usize, usize)> {
     match s.find(':') {
         None => {
@@ -44,9 +43,9 @@ pub fn parse_board_size(s: &str) -> ParseResult<(usize, usize)> {
         Some(x) => {
             let (w_s, h_s) = s.split_at(x);
 
+            let h_s = h_s.trim_start_matches(':');
+
             let w = w_s.parse::<usize>()?;
-
-
             let h = h_s.parse::<usize>()?;
 
             return Ok((w, h));
@@ -70,5 +69,11 @@ mod tests {
         assert_eq!(parse_coords("00"), Err(ParseError::CoordinateParseError));
         assert_eq!(parse_coords("aaa"), Err(ParseError::CoordinateParseError));
         assert_eq!(parse_coords(""), Err(ParseError::CoordinateParseError));
+    }
+
+    #[test]
+    pub fn board_size() {
+        assert_eq!(parse_board_size("19"), Ok((19, 19)));
+        assert_eq!(parse_board_size("5:9"), Ok((5, 9)));
     }
 }
