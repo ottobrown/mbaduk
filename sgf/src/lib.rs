@@ -1,3 +1,5 @@
+#![allow(clippy::needless_return)]
+
 mod parse;
 mod tree;
 pub mod util;

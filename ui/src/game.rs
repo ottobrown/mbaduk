@@ -31,53 +31,57 @@ pub struct NewGameBuilder {
 impl NewGameBuilder {
     /// Creates the ui and returns the [GameState] if done.
     pub fn render(&mut self, ui: &mut Ui) -> Option<GameState> {
-        egui::Frame::group(&ui.style()).show(ui, |ui| {
-            ui.heading("Load SGF file");
+        egui::Frame::group(ui.style())
+            .show(ui, |ui| {
+                ui.heading("Load SGF file");
 
-            if ui.button("Select file").clicked() {
-                let dialog = rfd::FileDialog::new()
-                    .add_filter("sgf", &["sgf"])
-                    .pick_file();
+                if ui.button("Select file").clicked() {
+                    let dialog = rfd::FileDialog::new()
+                        .add_filter("sgf", &["sgf"])
+                        .pick_file();
 
-                if let Some(p) = dialog {
-                    self.sgf_path = Some(p.clone());
+                    if let Some(p) = dialog {
+                        self.sgf_path = Some(p.clone());
 
-                    ui.label(format!("{}", &p.display()));
+                        ui.label(format!("{}", &p.display()));
 
-                    match std::fs::read_to_string(&p) {
-                        Ok(s) => {
-                            match mb_sgf::parse(&s) {
-                                Ok(t) => {
-                                    self.tree = t;
+                        match std::fs::read_to_string(&p) {
+                            Ok(s) => {
+                                match mb_sgf::parse(&s) {
+                                    Ok(t) => {
+                                        self.tree = t;
 
-                                    self.from_sgf_root_props();
+                                        self.sgf_root_props();
 
-                                    return Some(self.build());
-                                },
-                                Err(e) => {ui.label(format!("failed to parse sgf tree: {:?}", e));},
-                            };
-                        }
-                        Err(e) => {
-                            ui.label(format!("{:?}", e));
+                                        return Some(self.build());
+                                    }
+                                    Err(e) => {
+                                        ui.label(format!("failed to parse sgf tree: {:?}", e));
+                                    }
+                                };
+                            }
+                            Err(e) => {
+                                ui.label(format!("{:?}", e));
+                            }
                         }
                     }
                 }
-            }
-            
-            ui.heading("Board size:");
 
-            ui.label("Width:");
-            ui.add(egui::Slider::new(&mut self.size.0, 5..=50));
+                ui.heading("Board size:");
 
-            ui.label("Height:");
-            ui.add(egui::Slider::new(&mut self.size.1, 5..=50));
+                ui.label("Width:");
+                ui.add(egui::Slider::new(&mut self.size.0, 5..=50));
 
-            if ui.button("Finish").clicked() {
-                return Some(self.build());
-            }
+                ui.label("Height:");
+                ui.add(egui::Slider::new(&mut self.size.1, 5..=50));
 
-            None
-        }).inner
+                if ui.button("Finish").clicked() {
+                    return Some(self.build());
+                }
+
+                None
+            })
+            .inner
     }
 
     pub fn build(&self) -> GameState {
@@ -86,12 +90,14 @@ impl NewGameBuilder {
             turn: Stone::Black,
             tree: SgfTree::default(),
             sgf_path: None,
-        }
+        };
     }
 
-    pub fn from_sgf_root_props(&mut self)  {
+    /// Edit properties of `Self` based on the props in the sgf root
+    pub fn sgf_root_props(&mut self) {
         let root_node = &self.tree.nodes[0];
 
+        #[allow(clippy::single_match)]
         for p in &root_node.props {
             match p.id.as_str() {
                 "SZ" => self.size = mb_sgf::util::parse_board_size(&p.values[0]).unwrap(),

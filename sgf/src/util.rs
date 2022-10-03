@@ -38,7 +38,7 @@ pub fn parse_board_size(s: &str) -> ParseResult<(usize, usize)> {
             let w = s.parse::<usize>()?;
 
             return Ok((w, w));
-        },
+        }
 
         Some(x) => {
             let (w_s, h_s) = s.split_at(x);
